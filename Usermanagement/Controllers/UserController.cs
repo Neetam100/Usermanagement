@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Usermanagement.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Usermanagement.Controllers
 {
@@ -10,17 +11,22 @@ namespace Usermanagement.Controllers
     public class UsersController : ControllerBase
     {
         private readonly AppDBContext _context;
+        private readonly ILogger<UsersController> _logger;
 
-        public UsersController(AppDBContext context)
+        public UsersController(AppDBContext context, ILogger<UsersController> logger)
         {
             _context = context;
+            _logger = logger;
+
         }
 
         // GET: api/user
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-            return await _context.User.ToListAsync();
+            _logger.LogInformation("Getting  users at {Time}", DateTime.UtcNow);
+           var user = await _context.User.ToListAsync();
+            return Ok(user);
         }
 
         // GET: api/user/id
@@ -37,6 +43,7 @@ namespace Usermanagement.Controllers
         public async Task<ActionResult<User>> CreateUser(User user)
         {
             _context.User.Add(user);
+            _logger.LogInformation("Creating user: {name}", user.name);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
         }
